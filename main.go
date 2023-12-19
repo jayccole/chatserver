@@ -2,30 +2,31 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 
 	"golang.org/x/net/websocket"
 )
 
 type Server struct {
-	conns map[*websoket.Conn]bool
+	conns map[*websocket.Conn]bool
 }
 
 func NewServer() *Server {
 	return &Server{
-		conns: make(map[*websocket.Conn]bool)
+		conns: make(map[*websocket.Conn]bool),
 	}
 }
 
-func (s *server) handleWS(ws *websocket.Conn) {
+func (s *Server) handleWS(ws *websocket.Conn) {
 	fmt.Println("new incoming connection from client:", ws.RemoteAddr())
 
-	s.conn[ws] = true
+	s.conns[ws] = true
 
 	s.readLoop(ws)
 }
 
-func (s *server) readLoop(ws *websocket.Conn) {
+func (s *Server) readLoop(ws *websocket.Conn) {
 	buf := make([]byte, 1024)
 	for {
 		n, err := ws.Read(buf)
@@ -44,7 +45,7 @@ func (s *server) readLoop(ws *websocket.Conn) {
 
 func main() {
 	server := NewServer()
-	http.Handle("/ws", websocket.Handler(serverhandleWS))
+	http.Handle("/ws", websocket.Handler(server.handleWS))
 	http.ListenAndServe(":3000", nil)
 
 }
